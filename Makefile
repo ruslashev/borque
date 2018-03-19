@@ -4,16 +4,17 @@ warnings = -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable \
 		   -Wsuggest-override -Wlogical-op -Wtrampolines
 flags = -ggdb3 -Og -std=c++0x -fno-rtti -fno-exceptions
 libraries = -lSDL2 -lGLEW -lGL
+CC = gcc
 CXX = g++
 BIN = borque
 
-SOURCES = $(shell find ./client/ -type f -name '*.cc')
+SOURCES = $(shell find ./ -type f -name '*.cc' -o -name '*.cpp')
 OBJS = $(SOURCES:./%=.objs/%.o)
 DEPS = $(OBJS:.o=.d)
 CXXFLAGS = $(warnings) $(flags)
 LDFLAGS = $(libraries)
 
-$(shell mkdir -p .objs .objs/client .objs/thirdparty >/dev/null)
+$(shell mkdir -p .objs .objs/client .objs/3rdparty .objs/3rdparty/imgui >/dev/null)
 
 all: $(BIN)
 	./$(BIN)
