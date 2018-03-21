@@ -6,7 +6,8 @@ static bool g_done = false;
 GLuint vao, vbo, vertexShader, fragmentShader, shaderProgram;
 
 static void load() {
-  glClearColor(5.f / 255.f, 5.f / 255.f, 5.f / 255.f, 1.f);
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
 
   const char *vert_shader_src =
     "#version 120 \n"
@@ -19,9 +20,6 @@ static void load() {
     "void main() { \n"
     "  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0); \n"
     "} \n";
-
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
 
   glGenBuffers(1, &vbo);
 
