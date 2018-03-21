@@ -1,9 +1,8 @@
 #include "gfx.hh"
-#include "imgui.hh"
 #include "../common/utils.hh"
+#include <SDL2/SDL.h>
 #define GLEW_STATIC
 #include <GL/glew.h>
-#include "../3rdparty/imgui/imgui.h"
 
 static SDL_Window *window;
 static SDL_GLContext glcontext;
@@ -23,16 +22,12 @@ void gfx_init(const char *title, int width, int height) {
 
   glcontext = SDL_GL_CreateContext(window);
 
-  // turning vsync off causes imgui's timing issues manifesting in
-  // non-input keys (arrow keys etc.) registering several times
-  // if (SDL_GL_SetSwapInterval(0) == -1)
-  //   printf("warning: failed to set vsync: %s\n", SDL_GetError());
+  if (SDL_GL_SetSwapInterval(0) == -1)
+    printf("warning: failed to set vsync: %s\n", SDL_GetError());
 
   GLenum err = glewInit();
   if (err != GLEW_OK)
     die("Failed to initialze glew: %s", glewGetErrorString(err));
-
-  imgui_init(window);
 }
 
 void gfx_main_loop(bool *done
@@ -59,7 +54,6 @@ void gfx_main_loop(bool *done
       else if ((event.type == SDL_KEYDOWN || event.type == SDL_KEYUP)
           && event.key.repeat == 0)
         key_event_cb(event.key.keysym.sym, event.type == SDL_KEYDOWN);
-      imgui_process_event(&event);
     }
 
     while (accumulator >= dt) {
@@ -68,19 +62,13 @@ void gfx_main_loop(bool *done
       accumulator -= dt;
     }
 
-    imgui_new_frame(window);
     frame_cb();
 
-    glViewport(0, 0, (int)ImGui::GetIO().DisplaySize.x
-        , (int)ImGui::GetIO().DisplaySize.y);
-
-    ImGui::Render();
     SDL_GL_SwapWindow(window);
   }
 
   destroy_cb();
 
-  imgui_destroy();
   SDL_GL_DeleteContext(glcontext);
   SDL_DestroyWindow(window);
   SDL_Quit();

@@ -4,6 +4,7 @@ get-em:
 	wget https://raw.githubusercontent.com/ocornut/imgui/master/imgui_demo.cpp
 	wget https://raw.githubusercontent.com/ocornut/imgui/master/imgui_draw.cpp
 	wget https://raw.githubusercontent.com/ocornut/imgui/master/imgui_internal.h
+	wget https://raw.githubusercontent.com/ocornut/imgui/master/imconfig.h
 	wget https://raw.githubusercontent.com/ocornut/imgui/master/stb_rect_pack.h
 	wget https://raw.githubusercontent.com/ocornut/imgui/master/stb_textedit.h
 	wget https://raw.githubusercontent.com/ocornut/imgui/master/stb_truetype.h

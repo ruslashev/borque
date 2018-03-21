@@ -1,8 +1,6 @@
 #include <cstdio>
-#include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include "gfx.hh"
-#include "../3rdparty/imgui/imgui.h"
 
 static bool g_done = false;
 GLuint vao, vbo, vertexShader, fragmentShader, shaderProgram;
