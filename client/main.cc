@@ -104,7 +104,7 @@ static void mouse_button_event(int button, bool down, int xrel, int yrel) {
 }
 
 int main() {
-  int window_width = 1200, window_height = (double)window_width * (3. / 4.) + 0.5;
+  int window_width = 1000, window_height = (double)window_width * (3. / 4.) + 0.5;
   gfx_init("borque", window_width, window_height);
 
   gfx_main_loop(&g_done, load, draw, update, screen_resize, key_event,
