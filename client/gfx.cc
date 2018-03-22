@@ -1,5 +1,6 @@
 #include "gfx.hh"
 #include "../common/utils.hh"
+#include <chrono>
 #include <SDL2/SDL.h>
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -100,11 +101,30 @@ void gfx_main_loop(bool *done
       accumulator -= dt;
     }
 
+    auto draw_begin_w = std::chrono::high_resolution_clock::now();
+    std::clock_t draw_begin_c = std::clock();
+
     draw_cb(accumulator / dt);
+
+    auto draw_end_w = std::chrono::high_resolution_clock::now();
+    std::clock_t draw_end_c = std::clock();
+    std::chrono::duration<double, std::milli> draw_duration_w = draw_end_w
+      - draw_begin_w;
+    double draw_duration_c = ((double)(draw_end_c - draw_begin_c) / CLOCKS_PER_SEC)
+      * 1000.;
 
     SDL_GL_SwapWindow(window);
 
     ++frame_idx;
+
+    double now = SDL_GetTicks() / 1000., seconds_per_frame = now - real_time
+      , mspf = seconds_per_frame * 1000., fps = 1. / seconds_per_frame
+      , fpsavg = (double)frame_idx / now;
+    char title[256];
+    snprintf(title, 256, "borque %7.2f ms/f, %7.2f f/s, %7.2f f/s avg"
+        ", %.6f ms/d (wall) %.6f ms/d (cpu)", mspf, fps
+        , fpsavg, draw_duration_w.count(), draw_duration_c);
+    SDL_SetWindowTitle(window, title);
   }
 
   cleanup_cb();
