@@ -6,6 +6,7 @@
 
 static bool g_done = false;
 GLuint vao, vbo, vert_shader, frag_shader, shader_program;
+GLint resolution_unif, mouse_unif, time_unif;
 
 GLuint compile_shader(GLuint type, const std::string &source) {
   GLuint id = glCreateShader(type);
@@ -29,8 +30,8 @@ GLuint compile_shader(GLuint type, const std::string &source) {
 
   glDeleteShader(id);
 
-  die("Failed to compile %s shader:\n%s"
-      , (type == GL_VERTEX_SHADER) ? "vertex" : "fragment", info_log_str.c_str());
+  die("Failed to compile %s shader:\n%s",
+      (type == GL_VERTEX_SHADER) ? "vertex" : "fragment", info_log_str.c_str());
 }
 
 static void load() {
@@ -39,14 +40,14 @@ static void load() {
 
   glGenBuffers(1, &vbo);
 
-  GLfloat vertices[] = {
-     0.0f,  0.5f,
-     0.5f, -0.5f,
-    -0.5f, -0.5f
+  GLfloat screen_quad_vertices[] = {
+    -1,  1,  1, -1,  1,  1,
+    -1,  1, -1, -1,  1, -1,
   };
 
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(screen_quad_vertices),
+      screen_quad_vertices, GL_STATIC_DRAW);
 
   vert_shader = compile_shader(GL_VERTEX_SHADER, read_file("vsh.glsl"));
   frag_shader = compile_shader(GL_FRAGMENT_SHADER, read_file("fsh.glsl"));
@@ -60,20 +61,31 @@ static void load() {
   GLint pos_attrib = glGetAttribLocation(shader_program, "position");
   glEnableVertexAttribArray(pos_attrib);
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+  resolution_unif = glGetUniformLocation(shader_program, "resolution");
+  mouse_unif = glGetUniformLocation(shader_program, "mouse");
+  time_unif = glGetUniformLocation(shader_program, "time");
 }
 
-static void draw() {
+static void draw(double alpha) {
   glClear(GL_COLOR_BUFFER_BIT);
-  glDrawArrays(GL_TRIANGLES, 0, 3);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 static void update(double dt, double t) {
+  glUniform1f(time_unif, t);
+}
+
+static void screen_resize(int w, int h) {
+  glViewport(0, 0, w, h);
+  glUniform2f(resolution_unif, w, h);
 }
 
 static void key_event(unsigned long long key, bool down) {
 }
 
-static void destroy() {
+static void cleanup() {
   glDeleteProgram(shader_program);
   glDeleteShader(frag_shader);
   glDeleteShader(vert_shader);
@@ -83,10 +95,19 @@ static void destroy() {
   glDeleteVertexArrays(1, &vao);
 }
 
+static void mouse_motion_event(float xrel, float yrel, int x, int y) {
+
+}
+
+static void mouse_button_event(int button, bool down, int xrel, int yrel) {
+  glUniform2f(mouse_unif, xrel, yrel);
+}
+
 int main() {
   int window_width = 1200, window_height = (double)window_width * (3. / 4.) + 0.5;
   gfx_init("borque", window_width, window_height);
 
-  gfx_main_loop(&g_done, load, draw, update, key_event, destroy);
+  gfx_main_loop(&g_done, load, draw, update, screen_resize, key_event,
+      mouse_motion_event, mouse_button_event, cleanup);
 }
 
