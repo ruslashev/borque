@@ -109,9 +109,9 @@ vec3 estimate_normal(vec3 p) {
                    e.xxx * scene(p + e.xxx));
 }
 
-vec3 phong_contrib_for_light(vec3 Kd, vec3 Ks, float alpha, vec3 p, vec3 eye,
-    vec3 pos, vec3 intensity) {
-  vec3 N = estimate_normal(p);
+vec3 phong_contrib_for_light(vec3 Kd, vec3 Ks, float alpha, vec3 p, vec3 normal,
+    vec3 eye, vec3 pos, vec3 intensity) {
+  vec3 N = normal;
   vec3 L = normalize(pos - p);
   vec3 V = normalize(eye - p);
   vec3 R = normalize(reflect(-L, N));
@@ -133,17 +133,19 @@ vec3 phong_contrib_for_light(vec3 Kd, vec3 Ks, float alpha, vec3 p, vec3 eye,
 }
 
 vec3 phong_illuminate(vec3 Ka, vec3 Kd, vec3 Ks, float alpha, vec3 p, vec3 eye) {
-  const vec3 ambient_light = 0.5 * vec3(1.0, 1.0, 1.0);
+  const vec3 ambient_light = vec3(0.5);
   vec3 color = ambient_light * Ka;
+
+  vec3 normal = estimate_normal(p);
 
   vec3 light1_pos = vec3(4.0 * sin(time), 2.0, 4.0 * cos(time));
   vec3 light1_intensity = vec3(0.4, 0.4, 0.4);
-  color += phong_contrib_for_light(Kd, Ks, alpha, p, eye, light1_pos,
+  color += phong_contrib_for_light(Kd, Ks, alpha, p, normal, eye, light1_pos,
       light1_intensity);
 
   vec3 light2_pos = vec3(2.0 * sin(0.37 * time), 2.0 * cos(0.37 * time), 2.0);
   vec3 light2_intensity = vec3(0.4, 0.4, 0.4);
-  color += phong_contrib_for_light(Kd, Ks, alpha, p, eye, light2_pos,
+  color += phong_contrib_for_light(Kd, Ks, alpha, p, normal, eye, light2_pos,
       light2_intensity);
 
   return color;
