@@ -75,8 +75,7 @@ vec3 apply(vec3 p, mat4 tr) {
 // =====
 
 float scene(vec3 p) {
-  return rect(p, vec3(1.0));
-  // return union(rect(p, vec3(1.0, 1.0, 1.0)), plane(p, vec4(0.0, 1.0, 0.0, 0.0)));
+  return union(rect(p, vec3(1.0)), plane(p + vec3(0.0, 1.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0)));
   // return rect(apply(repeat(p, vec3(8.0)), rotateY(-time)), vec3(1.0));
 }
 
@@ -158,7 +157,7 @@ mat4 look_at(vec3 eye, vec3 center, vec3 up) {
 
 void main() {
   vec3 view_dir = ray_direction(45.0, resolution, gl_FragCoord.xy);
-  vec3 eye = vec3(3.0, 5.0, 7.0);
+  vec3 eye = vec3(7.0, 5.0, 13.0);
   mat4 view_to_world = look_at(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
   vec3 world_dir = (view_to_world * vec4(view_dir, 0.0)).xyz;
 
