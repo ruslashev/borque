@@ -6,14 +6,27 @@ uniform float time;
 
 const int MAX_STEPS = 255;
 const float MIN_DIST = 0.0;
-const float MAX_DIST = 100.0;
+const float MAX_DIST = 500.0;
 const float EPS = 0.0001;
+
+float sinn(float x) {
+  return (sin(x) + 1.0) / 2.0;
+}
+
+float sint() {
+  return sinn(time);
+}
+
+// float length5(vec3 p) {
+//   p = p * p * p * p * p;
+//   return pow(p.x + p.y, 1.0 / 5.0);
+// }
 
 float sphere(vec3 p, float s) {
   return length(p) - s;
 }
 
-float ubox(vec3 p, vec3 b) {
+float urect(vec3 p, vec3 b) {
   return length(max(abs(p) - b, 0.0));
 }
 
@@ -24,8 +37,47 @@ float rect(vec3 p, vec3 b) {
   return inside_distance + outside_distance;
 }
 
+float plane(vec3 p, vec4 n) { // n must be normalized
+  return dot(p, n.xyz) + n.w;
+}
+
+float union(float x, float y) {
+  return min(x, y);
+}
+
+float intersection(float x, float y) {
+  return max(x, y);
+}
+
+float difference(float x, float y) {
+  return max(-x, y);
+}
+
+vec3 repeat(vec3 p, vec3 c) {
+  return mod(p, c) - 0.5 * c;
+}
+
+mat4 rotateY(float theta) {
+  float c = cos(theta);
+  float s = sin(theta);
+  return mat4(
+      vec4( c,  0,  s,  0),
+      vec4( 0,  1,  0,  0),
+      vec4(-s,  0,  c,  0),
+      vec4( 0,  0,  0,  1)
+      );
+}
+
+vec3 apply(vec3 p, mat4 tr) {
+  return (tr * vec4(p, 1.0)).xyz;
+}
+
+// =====
+
 float scene(vec3 p) {
-  return rect(p, vec3(1.0, 1.0, 1.0));
+  return rect(p, vec3(1.0));
+  // return union(rect(p, vec3(1.0, 1.0, 1.0)), plane(p, vec4(0.0, 1.0, 0.0, 0.0)));
+  // return rect(apply(repeat(p, vec3(8.0)), rotateY(-time)), vec3(1.0));
 }
 
 vec3 ray_direction(float vfov, vec2 screen_size, vec2 frag_coord) {
@@ -97,14 +149,20 @@ vec3 phong_illuminate(vec3 Ka, vec3 Kd, vec3 Ks, float alpha, vec3 p, vec3 eye) 
   return color;
 }
 
-float sinn(float x) {
-  return (sin(x) + 1.0) / 2.0;
+mat4 look_at(vec3 eye, vec3 center, vec3 up) {
+  vec3 f = normalize(center - eye);
+  vec3 s = normalize(cross(f, up));
+  vec3 u = cross(s, f);
+  return mat4(vec4(s, 0.0), vec4(u, 0.0), vec4(-f, 0.0), vec4(0.0, 0.0, 0.0, 1));
 }
 
 void main() {
-  vec3 dir = ray_direction(45.0, resolution, gl_FragCoord.xy);
-  vec3 eye = vec3(0.0, 0.0, 5.0);
-  float dist = distance_to_scene(eye, dir, MIN_DIST, MAX_DIST);
+  vec3 view_dir = ray_direction(45.0, resolution, gl_FragCoord.xy);
+  vec3 eye = vec3(3.0, 5.0, 7.0);
+  mat4 view_to_world = look_at(eye, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+  vec3 world_dir = (view_to_world * vec4(view_dir, 0.0)).xyz;
+
+  float dist = distance_to_scene(eye, world_dir, MIN_DIST, MAX_DIST);
 
   if (dist > MAX_DIST - EPS) {
     // no hit
@@ -112,7 +170,7 @@ void main() {
     return;
   }
 
-  vec3 p = eye + dist * dir;
+  vec3 p = eye + dist * world_dir;
 
   vec3 Ka = vec3(0.2, 0.2, 0.2);
   vec3 Kd = vec3(0.7, 0.2, 0.2);
