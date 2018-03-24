@@ -8,6 +8,7 @@ const int MAX_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 500.0;
 const float EPS = 0.0001;
+const float EPSN = 0.0005;
 
 float sinn(float x) {
   return (sin(x) + 1.0) / 2.0;
@@ -41,15 +42,15 @@ float plane(vec3 p, vec4 n) { // n must be normalized
   return dot(p, n.xyz) + n.w;
 }
 
-float union(float x, float y) {
+float _union(float x, float y) {
   return min(x, y);
 }
 
-float intersection(float x, float y) {
+float _intersection(float x, float y) {
   return max(x, y);
 }
 
-float difference(float x, float y) {
+float _difference(float x, float y) {
   return max(-x, y);
 }
 
@@ -75,7 +76,7 @@ vec3 apply(vec3 p, mat4 tr) {
 // =====
 
 float scene(vec3 p) {
-  return union(rect(p, vec3(1.0)), plane(p + vec3(0.0, 1.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0)));
+  return _union(rect(p, vec3(1.0)), plane(p + vec3(0.0, 1.0, 0.0), vec4(0.0, 1.0, 0.0, 0.0)));
   // return rect(apply(repeat(p, vec3(8.0)), rotateY(-time)), vec3(1.0));
 }
 
@@ -101,11 +102,11 @@ float distance_to_scene(vec3 eye, vec3 dir, float start, float end) {
 }
 
 vec3 estimate_normal(vec3 p) {
-  return normalize(vec3(
-    scene(vec3(p.x + EPS, p.y, p.z)) - scene(vec3(p.x - EPS, p.y, p.z)),
-    scene(vec3(p.x, p.y + EPS, p.z)) - scene(vec3(p.x, p.y - EPS, p.z)),
-    scene(vec3(p.x, p.y, p.z + EPS)) - scene(vec3(p.x, p.y, p.z - EPS))
-  ));
+  vec2 e = vec2(1.0, -1.0) * EPSN;
+  return normalize(e.xyy * scene(p + e.xyy) +
+                   e.yyx * scene(p + e.yyx) +
+                   e.yxy * scene(p + e.yxy) +
+                   e.xxx * scene(p + e.xxx));
 }
 
 vec3 phong_contrib_for_light(vec3 Kd, vec3 Ks, float alpha, vec3 p, vec3 eye,
